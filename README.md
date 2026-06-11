@@ -17,11 +17,9 @@ Firstly, dataset generation:
 ```
 python sort_of_clevr_generator.py
 ```
-**Then, you can run `sort_main.py` directly.**
-
-**Or execute the following commands to reproduce the experimental results of the Sort-of-CLEVR dataset in our paper.**
+**Execute the following commands to reproduce all experiments for the Triangle task in the paper:**
 ```
-sh pmi_sort.sh h_dim num_layers num_heads share_vanilla_parameters use_topk topk shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_wm_inference seed set_transformer
+sh sort.sh h_dim num_layers num_heads share_vanilla_parameters use_topk topk shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_wm_inference seed set_transformer
 ```
 **Explanation of Parameters:**
 
@@ -40,96 +38,56 @@ sh pmi_sort.sh h_dim num_layers num_heads share_vanilla_parameters use_topk topk
 `shared_memory_attention`: Whether to use shared working memory and long-term memory. 
  If shared_memory_attention is false, then vanilla multi-head attention is used.
 
-`mem_slots`: Number of slots in workspace
+`mem_slots`: Number of slots in working memory
 
-`use_long_men`: Whether to use long-term memory component. It must be True in our PMI-TR.
+`use_long_men`: Whether to use long-term memory component. 
 
 `long_mem_segs`: Number of long-term memory segments
 
-`long_mem_aggre`: Whether cross-attention is performed on information retrieved from the working memory and long-term memory. If True, it will run PMI-TR $_{m}w/o2$.
+`long_mem_aggre`: Whether cross-attention is performed on information retrieved from the working memory and long-term memory.
 
 `use_wm_inference`: Whether working memory come into play during the reasoning process
 
 `seed`: Random seed
 
-`functional`: ues Set Transformer (ISAB) or not. If True, it will run ISAB.
+`functional`: ues Set Transformer or not.
 
 **Specifically, please execute the following commands to reproduce all experiments for the Sort-of-CLEVR task in the paper:**
 
 ```
-PMI-TR $_{s}$
-sh pmi_sort.sh 256 4 4 True True 5 True 8 True 5 True True 1 False
+MITR 
+sh sort.sh 256 8 8 True True 5 True 7 True 5 True True 1 False
 
-PMI-TR $_{m}$
-sh pmi_sort.sh 256 8 8 True True 5 True 8 True 5 True True 1 False
+HSWTR
+sh sort.sh 256 8 8 True True 5 True 7 False 5 False False 1 False
 
-PMI-TR $_{l}$
-sh pmi_sort.sh 256 12 16 True True 5 True 8 True 5 True True 1 False
-
-PMI-TR $_{m}w/o1$ (without memory sharing among its layers)
-sh pmi_sort.sh 256 8 8 False True 5 True 8 True 5 True True 1 False
-
-PMI-TR $_{m}w/o2$  (info retrieved from LTM is directly aggregated with data from WM via $\alpha$ without correction step.
-That is,there is no Equation 11 in the paper, and in Equation 12, \(U_{wl}^t\) is changed to \(U_{l}^t\).)
-
-sh pmi_sort.sh 256 8 8 True True 5 True 8 True 5 False True 1 False
-
-PMI-TR $_{m}w/o3$ (without WM involvement during inference)
-sh pmi_sort.sh 256 8 8 True True 5 True 8 True 5 True False 1 False
-
-PMI-TR $_{m}$ +soft
-sh pmi_sort.sh 256 8 8 True False 5 True 8 True 5 True True 1 False
-
-TR + HSW
-sh pmi_sort.sh 256 4 4 True True 5 True 8 False 5 False False 1 False
+SDMTR
+sh sort.sh 256 8 8 True False 5 False 7 False 5 False False 1 False
 
 TR
-sh pmi_sort.sh 256 4 4 True False 5 False 8 False 5 False False 1 False
+sh sort.sh 256 4 4 False False 5 False 7 False 5 False False 1 False
 
-TR + HC
-sh pmi_sort.sh 256 4 4 False False 5 False 8 False 5 False False 1 False
-
-ISAB
-sh pmi_sort.sh 256 4 4 False False 5 False 8 False 5 False False 1 True
-
+STR
+sh sort.sh 256 4 4 False False 5 False 7 False 5 False False 1 True
 ```
 
 ## Task2: bAbI
 You can find the source code for the bAbI task in `sort_of_clevr_and_babi` folder.
 
-**Specifically, please run `babi_main.py` directly.**
-
-**Or execute the following commands to reproduce all experiments for the bAbI task in the paper:**
+**Execute the following commands to reproduce experiment for the bAbI task in the paper:**
 ```
-sh pmi_babi.sh h_dim num_layers num_heads share_vanilla_parameters use_topk topk shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_wm_inference seed set_transformer
+sh babi.sh h_dim num_layers num_heads share_vanilla_parameters use_topk topk shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_wm_inference seed set_transformer
 ```
 
 ```
-PMI-TR $_{m}$
-sh pmi_babi.sh 256 8 8 True True 5 True 8 True 5 True True 1 False
-
-PMI-TR $_{m}w/o1$ 
-sh pmi_babi.sh 256 8 8 False True 5 True 8 True 5 True True 1 False
-
-PMI-TR $_{m}w/o2$ 
-sh pmi_babi.sh 256 8 8 True True 5 True 8 True 5 False True 1 False
-
-PMI-TR $_{m}w/o3$ 
-sh pmi_babi.sh 256 8 8 True True 5 True 8 True 5 True False 1 False
-
-PMI-TR $_{m}$ +soft
-sh pmi_babi.sh 256 8 8 True False 5 True 8 True 5 True True 1 False
-
-TR + HSW
-sh pmi_babi.sh 256 4 4 True True 5 True 8 False 5 False False 1 False
+MITR
+sh babi.sh 256 8 8 True True 5 True 7 True 5 True True 1 False
 ```
 
 ## Task3: Detecting Equilateral Triangles 
 You can find the source code for the Triangle task in `triangle_and_cifar10` folder.
 
-**Specifically, please run `run.py` directly.**
-
-**Or execute the following commands to reproduce all experiments for the Triangle task in the paper:**
+**Execute the following commands to reproduce all experiments for the Triangle task in the paper:**
 
 ```
 sh run.sh dataset model patch_size num_layers h_dim ffn_dim share_vanilla_parameters use_topk topk
@@ -137,59 +95,54 @@ shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_
 ```
 
 ```
-PMI-TR
-sh run.sh "Triangle" "default" 32 2 128 256 True True 5 True 8 True 5 True True 1
+MITR
+sh run.sh "Triangle" "default" 32 2 128 256 True True 5 True 7 True 5 True True 1
 
-PMI-TR+S
-sh run.sh "Triangle" "default" 32 2 128 256 True False 5 True 8 True 5 True True 1
+HSWTR
+sh run.sh "Triangle" "default" 4 4 128 256 True True 5 True 7 False 5 False True 1
 
-TR + HSW
-sh run.sh "Triangle" "default" 4 4 128 256 True True 5 True 8 False 5 False True 1
+SDMTR
+sh run.sh "Triangle" "default" 4 4 128 256 True False 5 False 7 False 5 False True 1
 
 TR
-sh run.sh "Triangle" "default" 4 4 128 256 True False 5 False 8 False 5 False True 1
+sh run.sh "Triangle" "default" 4 4 128 256 True False 5 False 7 False 5 False True 1
 
 STR
-sh run.sh "Triangle" "default" 4 4 128 256 True True 5 False 8 False 5 False True 1
-
-ISAB
-sh run.sh "Triangle" "functional" 4 4 128 256 False False 5 False 8 False 5 False True 1
+sh run.sh "Triangle" "functional" 4 4 128 256 False False 5 False 7 False 5 False True 1
 ```
 
 ## Task4: Image Classification
 You can find the source code for the Cifar-10 task in `triangle_and_cifar10` folder.
 
-**Specifically, please run `run.py` directly.**
-
-**Or execute the following commands to reproduce all experiments for the Cifar-10 task in the paper:**
+**Execute the following commands to reproduce all experiments for the cifar10 task in the paper:**
 
 ```
 sh run.sh dataset model patch_size num_layers h_dim ffn_dim share_vanilla_parameters use_topk topk
 shared_memory_attention mem_slots use_long_men long_mem_segs long_mem_aggre use_wm_inference seed
 ```
 
-**1.Trans.**
 ```
-PMI-TR
+MITR
 sh run.sh "cifar10" "default" 4 4 256 256 True True 5 True 8 True 5 True True 1
 
-TR + HSW
+HSWTR
 sh run.sh "cifar10" "default" 4 4 256 256 True True 5 True 8 False 5 False True 1
 
-ViT
+SDMTR
+sh run.sh "Triangle" "default" 4 4 128 256 True False 5 False 7 False 5 False True 1
+
+TR
 sh run.sh "cifar10" "default" 4 4 256 256 True False 5 False 8 False 5 False True 1
 
-ISAB
+STR
 sh run.sh "cifar10" "functional" 4 4 256 256 False False 5 False 8 False 5 False True 1
 ```
-**2.Conv.**
+
+## Task5: Text Generation
+You can find the source code for the Text8 task in `sort_of_clevr_and_babi` folder.
+
+**Execute the following command to reproduce experiment for the Text8 task in the paper:**
+
 ```
-CNN_MLP
-sh run.sh "cifar10" "CNN_MLP" 4 4 256 256 True True 5 True 8 True 5 False True 1
-
-CNN_PMI
-sh run.sh "cifar10" "CNN_PMI" 4 4 256 256 True True 5 True 8 True 5 True True 1
-
-CNN_PMI $w/o$ 
-sh run.sh "cifar10" "CNN_PMI" 4 4 256 256 True True 5 True 8 True 5 False True 1
+python llm_main.py --data ./data/text8 --dataset text8 --num_layers 4 --d_embed 512 --d_model 512 --embed_dim 512 --seed 1 --log-interval 1000 --eval-interval 5000 --batch_size 16 --tgt_len 70 --eval_tgt_len 50 --max_step 100000 --dropout 0.1 --cuda
 ```
