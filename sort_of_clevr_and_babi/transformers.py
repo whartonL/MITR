@@ -69,6 +69,24 @@ class SimpleFlowMatching(nn.Module):
             x = x + v * dt 
             
         return x
+        
+class BayesianUpdater(nn.Module):
+    def __init__(self, prior_var=1.0, noise_var=1.0):
+        super().__init__()
+        self.prior_var = torch.tensor(prior_var)
+        self.noise_var = torch.tensor(noise_var)
+
+    def forward(self, x_prior, x_obs):
+        p = 1.0 / self.prior_var.to(x_prior.device, x_prior.dtype)
+        n = 1.0 / self.noise_var.to(x_prior.device, x_prior.dtype)
+
+        mu = (p * x_prior + n * x_obs) / (p + n)
+        var = 1.0 / (p + n)
+
+        var = torch.clamp(var, min=1e-6)
+
+        eps = torch.randn_like(mu)
+        return mu + eps * torch.sqrt(var)
 
 
 class SelectAttention(nn.Module):
@@ -130,6 +148,8 @@ class TransformerEncoder(nn.Module):
             self.schema_specific = schema_specific
 
         self.flow_matching = SimpleFlowMatching(embed_dim=embed_dim, num_steps=5, dropout=args.dropout)
+        self.bayes = BayesianUpdater(prior_var=1.0, noise_var=0.1)
+        self.noise_scale = 0.1
         
         args.mem_slots = mem_slots
         args.encoder_embed_dim = embed_dim
@@ -224,7 +244,15 @@ class TransformerEncoder(nn.Module):
                         if layer.self_attn.memory is not None:
                             layer.self_attn.init_memory(x.size(1), x.device) #.memory = layer.self_attn.memory.detach()
 
-            x = self.flow_matching(x)
+            # 1. flow matching output
+            x0 = self.flow_matching(x)
+            
+            # 2. add noise (stochastic observation)
+            noise = torch.randn_like(x0) * self.noise_scale
+            x_obs = x0 + noise
+            
+            # 3. Bayesian update + resample
+            x = self.bayes(x0, x_obs)
             
             for i in range(self.num_layers):   # 4层
                 # 若共享参数
